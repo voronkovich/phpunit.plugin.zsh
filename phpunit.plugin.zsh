@@ -91,6 +91,54 @@ _phpunit() {
         '*:file:_files -/' && return 0
 }
 
+puwatch() {
+    if ! which 'inotifywait' > /dev/null; then
+        echo 'Command "inotifywait" not found. Try to install the "inotify-tools" package.' >&2;
+        return 1;
+    fi
+
+    local src_dir="${${1:-src}%/}";
+    local test_dir="${${2:-tests}%/}";
+
+    clear;
+
+    echo "[$(date '+%F %H:%M:%S')]";
+    echo;
+    echo -e "\e[92mSources:\e[0m $src_dir\e[0m";
+    echo -e "\e[92mTests:\e[0m   $test_dir\e[0m";
+    echo;
+
+    while read file; do
+
+        [[ ! "${file: -4}" == '.php' ]] && continue;
+
+        [[ "$file" =~ "^$test_dir/" && ! "${file: -8}" == 'Test.php' ]] && echo "$file" && continue;
+
+        local test_file="$file";
+        if [[ ! "$file" =~ 'Test.php$' ]]; then
+            test_file="${${file/$src_dir/$test_dir}//.php/Test.php}";
+        fi
+
+        clear;
+
+        echo "[$(date '+%F %H:%M:%S')]";
+        echo;
+        echo -e "\e[92mSources:\e[0m $src_dir\e[0m";
+        echo -e "\e[92mTests:\e[0m   $test_dir\e[0m";
+        echo;
+
+        if [[ -f "$test_file" ]]; then
+            echo -e "\e[33m${test_file}\e[0m";
+            echo;
+            pu "$test_file";
+        else
+            echo -e "\e[31mFile \"\e[91m${test_file}\e[31m\" not exists!\e[0m" >&2;
+            echo;
+        fi
+
+    done < <(inotifywait -mre modify --format '%w%f' --exclude '.git' "$src_dir" "$test_dir");
+}
+
 compdef _phpunit phpunit
 compdef _phpunit phpunit_bin
 compdef _phpunit pu
