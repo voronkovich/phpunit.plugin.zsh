@@ -97,35 +97,43 @@ puwatch() {
         return 1;
     fi
 
-    local src_dir="${${1:-src}%/}";
-    local test_dir="${${2:-tests}%/}";
+    local src_dir="${1%/}";
+    local test_dir="${2%/}";
+
+    if [[ -z "$src_dir" ]]; then
+        if [[ -d 'src' ]]; then
+            src_dir='src';
+        else
+            src_dir='.';
+        fi
+    fi
+
+    if [[ -z "$test_dir" ]]; then
+        if [[ -d 'tests' ]]; then
+            test_dir='tests';
+        elif [[ -d 'Tests'  ]]; then
+            test_dir='Tests';
+        else
+            test_dir='.';
+        fi
+    fi
 
     clear;
+    __puwatch_header "$src_dir" "$test_dir";
 
-    echo "[$(date '+%F %H:%M:%S')]";
-    echo;
-    echo -e "\e[92mSources:\e[0m $src_dir\e[0m";
-    echo -e "\e[92mTests:\e[0m   $test_dir\e[0m";
-    echo;
-
-    while read file; do
+    inotifywait -mre modify --format '%w%f' --exclude '.git' "$src_dir" "$test_dir" | while read file; do
 
         [[ ! "${file: -4}" == '.php' ]] && continue;
 
         [[ "$file" =~ "^$test_dir/" && ! "${file: -8}" == 'Test.php' ]] && echo "$file" && continue;
 
         local test_file="$file";
-        if [[ ! "$file" =~ 'Test.php$' ]]; then
+        if [[ ! "${file: -8}" == 'Test.php' ]]; then
             test_file="${${file/$src_dir/$test_dir}//.php/Test.php}";
         fi
 
         clear;
-
-        echo "[$(date '+%F %H:%M:%S')]";
-        echo;
-        echo -e "\e[92mSources:\e[0m $src_dir\e[0m";
-        echo -e "\e[92mTests:\e[0m   $test_dir\e[0m";
-        echo;
+        __puwatch_header "$src_dir" "$test_dir";
 
         if [[ -f "$test_file" ]]; then
             echo -e "\e[33m${test_file}\e[0m";
@@ -136,7 +144,15 @@ puwatch() {
             echo;
         fi
 
-    done < <(inotifywait -mre modify --format '%w%f' --exclude '.git' "$src_dir" "$test_dir");
+    done
+}
+
+__puwatch_header() {
+    echo "[$(date '+%F %H:%M:%S')]";
+    echo;
+    echo -e "\e[92mSources:\e[0m ${1}\e[0m";
+    echo -e "\e[92mTests:\e[0m   ${2}\e[0m";
+    echo;
 }
 
 compdef _phpunit phpunit
