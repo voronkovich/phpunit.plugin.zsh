@@ -101,8 +101,8 @@ puwatch() {
     local test_dir="${2%/}";
 
     if [[ -z "$src_dir" ]]; then
-        if [[ -d 'src' ]]; then
-            src_dir='src';
+        if [[ -d './src' ]]; then
+            src_dir='./src';
         else
             src_dir='.';
         fi
@@ -110,9 +110,9 @@ puwatch() {
 
     if [[ -z "$test_dir" ]]; then
         if [[ -d 'tests' ]]; then
-            test_dir='tests';
+            test_dir='./tests';
         elif [[ -d 'Tests'  ]]; then
-            test_dir='Tests';
+            test_dir='./Tests';
         else
             test_dir='.';
         fi
@@ -121,11 +121,14 @@ puwatch() {
     clear;
     __puwatch_header "$src_dir" "$test_dir";
 
-    inotifywait -mre modify --format '%w%f' --exclude '.git' "$src_dir" "$test_dir" | while read file; do
+    inotifywait -mre modify \
+        --format '%w%f' \
+        --exclude '(/\.|/vendor/|\[^.\]\[^p\]\[^h\]\[^p\]$)' \
+        "$src_dir" "$test_dir" | \
 
-        [[ ! "${file: -4}" == '.php' ]] && continue;
+    while read file; do
 
-        [[ "$file" =~ "^$test_dir/" && ! "${file: -8}" == 'Test.php' ]] && echo "$file" && continue;
+        [[ "$file" == "$test_dir"* && ! "$test_dir" == "$src_dir" && ! "${file: -8}" == 'Test.php' ]] && continue;
 
         local test_file="$file";
         if [[ ! "${file: -8}" == 'Test.php' ]]; then
