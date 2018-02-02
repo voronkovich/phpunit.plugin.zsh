@@ -141,7 +141,7 @@ puwatch() {
         if [[ -f "$test_file" ]]; then
             echo -e "\e[33m${test_file}\e[0m";
             echo;
-            pu "$test_file";
+            pu --colors --columns="$(tput cols)" "$test_file";
         else
             echo -e "\e[31mFile \"\e[91m${test_file}\e[31m\" not exists!\e[0m" >&2;
             echo;
