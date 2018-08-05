@@ -182,5 +182,5 @@ __puwatch_header() {
 }
 
 compdef _phpunit phpunit
-compdef _phpunit phpunit_bin
+compdef _phpunit phpunit_cmd
 compdef _phpunit pu
