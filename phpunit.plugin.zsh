@@ -1,4 +1,5 @@
 alias pu='phpunit_cmd';
+alias puinit='phpunit_cmd --generate-configuration';
 
 phpunit_cmd() {
     eval "$(__phpunit_cmd) $@";
