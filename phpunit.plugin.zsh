@@ -1,10 +1,42 @@
-alias pu='phpunit_bin';
+alias pu='phpunit_cmd';
 
-phpunit_bin() {
-    local working_dir="$PWD";
-    local project_dir="$working_dir";
+phpunit_cmd() {
+    eval "$(__phpunit_cmd) $@";
+}
 
-    local dir="$working_dir";
+# Generates phpunit command
+__phpunit_cmd() {
+    local project_dir="$(__phpunit_project_dir)";
+    local phpunit_bin="$(__phpunit_bin $project_dir)";
+    local phpunit_config_dir="$(__phpunit_config_dir $project_dir)";
+
+    if [[ "$phpunit_config_dir" == '' ]]; then
+        echo "$phpunit_bin";
+    else
+        echo "$phpunit_bin -c $phpunit_config_dir";
+    fi
+}
+
+# Finds phpunit executable
+__phpunit_bin() {
+    local project_dir="${1:-$(__phpunit_project_dir)}";
+
+    (
+        find \
+            "$project_dir" \
+            "$project_dir/bin" \
+            "$project_dir/tools" \
+            "$project_dir/vendor/bin" \
+            -name 'phpunit' -maxdepth 1 2>/dev/null;
+        echo 'phpunit'
+    ) | head -n1;
+}
+
+# Finds project dir
+__phpunit_project_dir() {
+    local project_dir="$PWD";
+    local dir="$project_dir";
+
     while ((1)); do
 
         if [[ -f "$dir/composer.json" ]]; then
@@ -17,24 +49,15 @@ phpunit_bin() {
         dir="${dir%/*}";
     done
 
-    local phpunit_cmd="phpunit"
+    echo "$project_dir";
+}
 
-    if [[ -f "$project_dir/composer.json" ]]; then
-        local vendor_dir="$project_dir/vendor";
+__phpunit_config_dir() {
+    local project_dir="${1:-$(__phpunit_project_dir)}";
+    local phpunit_config_file=$(find "$project_dir" -maxdepth 2 -name 'phpunit.xml*' -type f 2>/dev/null | head -n 1);
+    local phpunit_config_dir="${phpunit_config_file%/phpunit.xml*}";
 
-        if [[ -f "$vendor_dir/phpunit/phpunit/phpunit" ]]; then
-            phpunit_cmd="$vendor_dir/phpunit/phpunit/phpunit";
-        fi
-    fi
-
-    local phpunit_config_file=$(find "$working_dir" "$project_dir" -maxdepth 2 -name 'phpunit.xml*' -type f 2>/dev/null | head -n 1);
-    local phpunit_config_dir=${phpunit_config_file%/phpunit.xml*};
-
-    if [[ ! $phpunit_config_dir == '' ]]; then
-        phpunit_cmd="$phpunit_cmd -c $phpunit_config_dir";
-    fi
-
-    eval "$phpunit_cmd $@";
+    echo "$phpunit_config_dir";
 }
 
 _phpunit() {
