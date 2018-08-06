@@ -2,7 +2,7 @@
 
 _arguments -s -w \
    '(-)'{-h,--help}'[Prints this usage information]' \
-   '(-c|--configuration)='{-c,--configuration}'[Read configuration from XML file]:configuration:_files -/' \
+   '(-c|--configuration)'{-c,--configuration}'=[Read configuration from XML file]:configuration:_files -/' \
    '(-v|--verbose)'{-v,--verbose}'[Output more verbose information]' \
    '--atleast-version=[Checks that version is greater than min and exits]:integer' \
    '--bootstrap=[A "bootstrap" PHP file that is run before the tests]:bootstrap:_files -/' \
