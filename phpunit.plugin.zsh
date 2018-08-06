@@ -129,4 +129,3 @@ __puwatch_header() {
 }
 
 compdef _phpunit phpunit_cmd
-compdef _phpunit pu
