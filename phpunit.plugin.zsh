@@ -2,20 +2,16 @@ alias pu='phpunit_cmd';
 alias puinit='phpunit_cmd --generate-configuration';
 
 phpunit_cmd() {
-    eval "$(__phpunit_cmd) $@";
+    $(__phpunit_cmd) "$@";
 }
 
 # Generates phpunit command
 __phpunit_cmd() {
-    local project_dir="$(__phpunit_project_dir)";
-    local phpunit_bin="$(__phpunit_bin $project_dir)";
-    local phpunit_config_dir="$(__phpunit_config_dir $project_dir)";
+    local -r project_dir="$(__phpunit_project_dir)";
+    local -r phpunit_bin="$(__phpunit_bin ${project_dir})";
+    local -r phpunit_config_dir="$(__phpunit_config_dir ${project_dir})";
 
-    if [[ "$phpunit_config_dir" == '' ]]; then
-        echo "$phpunit_bin";
-    else
-        echo "$phpunit_bin -c $phpunit_config_dir";
-    fi
+    echo "${phpunit_bin} ${phpunit_config_dir:+-c} ${phpunit_config_dir}";
 }
 
 # Finds phpunit executable
@@ -35,22 +31,21 @@ __phpunit_bin() {
 
 # Finds project dir
 __phpunit_project_dir() {
-    local project_dir="$PWD";
-    local dir="$project_dir";
+    local project_dir="${PWD}";
+    local dir="${project_dir}";
 
     while ((1)); do
-
-        if [[ -f "$dir/composer.json" ]]; then
-            project_dir="$dir";
+        if [[ -f "${dir}/composer.json" ]]; then
+            project_dir="${dir}";
             break;
         fi
 
-        [[ "$dir" == '' ]] && break;
+        [[ -z "${dir}" ]] && break;
 
         dir="${dir%/*}";
     done
 
-    echo "$project_dir";
+    echo "${project_dir}";
 }
 
 __phpunit_config_dir() {
@@ -128,4 +123,5 @@ __puwatch_header() {
     echo;
 }
 
-compdef _phpunit phpunit_cmd
+compdef _gnu_generic phpunit_cmd
+compdef _gnu_generic phpunit
