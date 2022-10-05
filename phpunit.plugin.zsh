@@ -16,17 +16,17 @@ __phpunit_cmd() {
 
 # Finds phpunit executable
 __phpunit_bin() {
-    local project_dir="${1:-$(__phpunit_project_dir)}";
+    local -r project_dir="${1:-$(__phpunit_project_dir)}";
 
-    (
-        find \
-            "$project_dir" \
-            "$project_dir/bin" \
-            "$project_dir/tools" \
-            "$project_dir/vendor/bin" \
-            -name 'phpunit' -maxdepth 1 2>/dev/null;
-        echo 'phpunit'
-    ) | head -n1;
+    local dir
+    for dir in "${project_dir}/"{bin,tools,vendor/bin,}; do
+        if [[ -f "${dir}/phpunit" ]]; then
+            echo "${dir}/phpunit"
+            return
+        fi
+    done
+
+    echo 'phpunit'
 }
 
 # Finds project dir
