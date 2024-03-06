@@ -58,6 +58,16 @@ __phpunit_config_dir() {
 __phpunit_config_file() {
     local project_dir="${1:-$(__phpunit_project_dir)}"
 
+    if [[ -f "${project_dir}/phpunit.xml" ]]; then
+        echo "${project_dir}/phpunit.xml"
+        return
+    fi
+
+    if [[ -f "${project_dir}/phpunit.xml.dist" ]]; then
+        echo "${project_dir}/phpunit.xml.dist"
+        return
+    fi
+
     find "${project_dir}" -maxdepth 2 -name 'phpunit.xml*' -type f -printf "%d %p\n" 2>/dev/null | \
         sort -n | cut -d ' ' -f 2 | head -n 1
 }
