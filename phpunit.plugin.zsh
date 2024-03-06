@@ -50,7 +50,7 @@ __phpunit_project_dir() {
 
 __phpunit_config_dir() {
     local project_dir="${1:-$(__phpunit_project_dir)}";
-    local phpunit_config_file=$(find "$project_dir" -maxdepth 2 -name 'phpunit.xml*' -type f 2>/dev/null | head -n 1);
+    local phpunit_config_file=$(find "$project_dir" -maxdepth 2 -name 'phpunit.xml*' -type f -printf "%d %p\n" 2>/dev/null | sort -n | cut -d " " -f 2 | head -n 1);
     local phpunit_config_dir="${phpunit_config_file%/phpunit.xml*}";
 
     echo "$phpunit_config_dir";
